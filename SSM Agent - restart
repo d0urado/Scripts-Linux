@@ -1,0 +1,25 @@
+#!/bin/bash
+if [ -f /etc/amazon-linux-release ] || [ -f /etc/redhat-release ]; then
+    sudo systemctl restart amazon-ssm-agent
+    sudo systemctl status amazon-ssm-agent --no-pager -l
+elif [ -f /etc/os-release ] && grep -q "Ubuntu" /etc/os-release; then
+    if command -v snap &> /dev/null && snap list | grep -q amazon-ssm-agent; then
+        sudo snap restart amazon-ssm-agent
+    else
+        sudo systemctl restart snap.amazon-ssm-agent.amazon-ssm-agent.service
+    fi
+elif [ -f /etc/os-release ] && grep -q "Debian" /etc/os-release; then
+    sudo systemctl restart amazon-ssm-agent
+    sudo systemctl status amazon-ssm-agent --no-pager -l
+elif [ -f /etc/os-release ] && grep -q "SUSE" /etc/os-release; then
+    sudo systemctl restart amazon-ssm-agent
+    sudo systemctl status amazon-ssm-agent --no-pager -l
+else
+    if command -v systemctl &> /dev/null; then
+        sudo systemctl restart amazon-ssm-agent
+    elif command -v service &> /dev/null; then
+        sudo service amazon-ssm-agent restart
+    fi
+fi
+sleep 5
+ps aux | grep amazon-ssm-agent | grep -v grep
